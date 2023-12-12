@@ -55,7 +55,7 @@ export const {
     async jwt({ token, account, user }: any) {
       if (user) {
         token.tokenSet = user.tokenSet;
-        token.roles = [];
+        token.roles = ["admin"];
       }
 
       const decodedAccessToken: any = jwtDecode(token.tokenSet.accessToken);
