@@ -55,7 +55,7 @@ const HttpClient = ({
           error.response?.status === 401 &&
           originalRequest.url === "/api/v1.0/auth/refresh-token"
         ) {
-          await signOut();
+          // await signOut();
           return Promise.reject(error);
         }
 
@@ -95,8 +95,6 @@ const HttpClient = ({
             console.log("refresh token not found");
           }
         }
-
-        console.log("not refresh token");
       }
 
       return Promise.reject(error);
