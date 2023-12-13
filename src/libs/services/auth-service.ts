@@ -3,8 +3,9 @@ import axios from "axios";
 const refreshTokenOAuth = async (
   refreshTokenString: string,
 ): Promise<{ access_token: string; refresh_token: string }> => {
-  const url = `${process.env.KEYCLOAK_ISSUER}/protocol/openid-connect/token`;
-  const data = {
+  const baseUrl = process.env.KEYCLOAK_ISSUER;
+  const path = "/protocol/openid-connect/token";
+  const dataBody = {
     grant_type: "refresh_token",
     client_id: process.env.KEYCLOAK_CLIENT_ID,
     refresh_token: refreshTokenString,
@@ -15,8 +16,12 @@ const refreshTokenOAuth = async (
       "Content-Type": "application/x-www-form-urlencoded",
     },
   };
-  const response = await axios.post(url, data, config);
-  return response.data;
+
+  const client = axios.create({ baseURL: baseUrl, headers: config.headers });
+  const { data } = await client.post(path, dataBody);
+  console.log("refresh token response: ", data);
+
+  return data;
 };
 
 const refreshTokenApi = async (refreshTokenString: string) => {
@@ -32,4 +37,12 @@ const refreshTokenApi = async (refreshTokenString: string) => {
   return data;
 };
 
-export { refreshTokenOAuth, refreshTokenApi };
+const keycloakSessionLogout = async () => {
+  try {
+    await fetch("api/auth/logout", { method: "GET" });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export { refreshTokenOAuth, refreshTokenApi, keycloakSessionLogout };
