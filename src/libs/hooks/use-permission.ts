@@ -1,11 +1,6 @@
-import { createContext, useContext } from "react";
-import { Scope, User } from "@/libs/types/user";
-
-interface UserContextProps {
-  user: User | null;
-}
-
-export const UserContext = createContext<UserContextProps>({ user: null });
+import { useContext } from "react";
+import { AuthzContext } from "@/libs/context/authz-context";
+import { Scope } from "@/libs/types/permissions";
 
 interface PermissionOptions {
   resource: string;
@@ -15,9 +10,9 @@ interface PermissionOptions {
 type PermissionResult = { [K in Scope]?: boolean };
 
 export function usePermission({ resource, scope }: PermissionOptions) {
-  const { user } = useContext(UserContext);
+  const { permissions } = useContext(AuthzContext);
 
-  const userScopes = user?.permissions[resource] || [];
+  const userScopes = permissions?.permissions[resource] || [];
 
   return scope.reduce((acc, perm) => {
     acc[perm] = userScopes.includes(perm);

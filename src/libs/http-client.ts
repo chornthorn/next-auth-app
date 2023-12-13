@@ -1,11 +1,11 @@
 import axios, { RawAxiosRequestHeaders } from "axios";
 import { auth } from "./auth";
-import { signOut } from "next-auth/react";
+import { refreshTokenOAuth } from "@/libs/services/auth-service";
 
 const HttpClient = ({
   baseUrl,
   headers,
-  requiredAuth = false,
+  requiredAuth = true,
 }: {
   requiredAuth?: boolean;
   baseUrl?: string;
@@ -20,23 +20,18 @@ const HttpClient = ({
   });
 
   // add auth token to request header via interceptor
-  axiosInstance.interceptors.request.use(
-    async (config) => {
-      if (requiredAuth) {
-        const authInfo = await auth();
+  axiosInstance.interceptors.request.use(async (config) => {
+    if (requiredAuth) {
+      const authInfo = await auth();
 
-        if (authInfo) {
-          const accessToken = authInfo?.user?.tokenSet?.accessToken;
-          config.headers["Authorization"] = `Bearer ${accessToken}`;
-        }
+      if (authInfo) {
+        const accessToken = authInfo?.user?.tokenSet?.accessToken;
+        config.headers["Authorization"] = `Bearer ${accessToken}`;
       }
+    }
 
-      return config;
-    },
-    (error) => {
-      return Promise.reject(error);
-    },
-  );
+    return config;
+  });
 
   // if access token is expired then refresh token via refreshToken() function
   axiosInstance.interceptors.response.use(
@@ -45,50 +40,27 @@ const HttpClient = ({
       return response;
     },
     async (error) => {
+      console.log("error response: ", error.response.data);
       const originalRequest = error.config;
       console.log("Original url:", originalRequest.url);
 
       // check if AxiosError
       if (axios.isAxiosError(error)) {
-        // if refresh token is expired then logout
-        if (
-          error.response?.status === 401 &&
-          originalRequest.url === "/api/v1.0/auth/refresh-token"
-        ) {
-          // await signOut();
-          return Promise.reject(error);
-        }
-
         // if access token is expired then refresh token
-        if (
-          error.response?.status === 401 &&
-          !originalRequest._retry &&
-          originalRequest.url !== "/api/v1.0/auth/refresh-token"
-        ) {
+        if (error.response?.status === 401 && !originalRequest._retry) {
           originalRequest._retry = true;
 
           const authInfo = await auth();
           const refreshToken = authInfo?.user?.tokenSet?.refreshToken;
 
+          console.log("refresh token call");
+
           if (refreshToken) {
-            const client = axios.create({
-              baseURL: process.env.BASE_URL || "http://localhost:3001",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${refreshToken}`,
-              },
-            });
+            const response = await refreshTokenOAuth(refreshToken);
 
-            const { data } = await client.post("/api/v1.0/auth/refresh-token");
-
-            console.log("refresh token response:", data);
-
-            if (data) {
-              //TODO: update access token in auth state
-
+            if (response) {
               axiosInstance.defaults.headers.common["Authorization"] =
-                `Bearer ${data.data.accessToken}`;
-
+                `Bearer ${response.access_token}`;
               return axiosInstance(originalRequest);
             }
           } else {

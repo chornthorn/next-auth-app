@@ -1,16 +1,28 @@
 "use client";
 
-import React, { ReactNode } from "react";
-import { UserContext } from "@/libs/hooks/use-permission";
+import React, { ReactNode, useState } from "react";
 import { User } from "@/libs/types/user";
+import { UserContext } from "@/libs/context/user-context";
 
 interface UserProviderProps {
   children: ReactNode;
-  user: User;
 }
 
-export function UserProvider({ children, user }: UserProviderProps) {
+export function UserProvider({ children }: UserProviderProps) {
+  const [user, setUser] = useState<User | null>({});
+
+  const updateUser = (newUser: User) => {
+    setUser(newUser);
+  };
+
   return (
-    <UserContext.Provider value={{ user }}>{children}</UserContext.Provider>
+    <UserContext.Provider
+      value={{
+        user,
+        updateUser,
+      }}
+    >
+      {children}
+    </UserContext.Provider>
   );
 }

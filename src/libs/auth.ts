@@ -1,6 +1,5 @@
 import Keycloak from "@auth/core/providers/keycloak";
 import NextAuth from "next-auth";
-import { refreshTokenOAuth } from "@/libs/services/auth-service";
 import { jwtDecode } from "jwt-decode";
 
 const isTokenExpired = (decodedAccessToken: any) => {
@@ -9,21 +8,6 @@ const isTokenExpired = (decodedAccessToken: any) => {
   return expiresInUnixTime < currentUnixTimestamp;
 };
 
-const refreshToken = async (token: any) => {
-  if (token.tokenSet?.refreshToken) {
-    const response = await refreshTokenOAuth(token.tokenSet.refreshToken);
-    if (response) {
-      token.tokenSet = {
-        accessToken: response.access_token,
-        refreshToken: response.refresh_token,
-      };
-    } else {
-      token.tokenSet = null;
-    }
-  }
-};
-
-// ENV
 const KEYCLOAK_CLIENT_SECRET = String(process.env.KEYCLOAK_CLIENT_SECRET);
 const KEYCLOAK_CLIENT_ID = String(process.env.KEYCLOAK_CLIENT_ID);
 const KEYCLOAK_ISSUER = process.env.KEYCLOAK_ISSUER;
@@ -35,16 +19,20 @@ export const {
   providers: [
     Keycloak({
       async profile(profile, tokens) {
-        return {
+        const user = {
           id: profile.sub,
           name: profile.name ?? profile.preferred_username,
-          email: profile.email,
-          image: profile.picture,
+          email: profile.email ?? "",
+          image: profile.picture ?? "",
+          firstName: profile.given_name ?? "",
+          lastName: profile.family_name ?? "",
           tokenSet: {
             accessToken: tokens.access_token,
             refreshToken: tokens.refresh_token,
           },
         };
+
+        return user;
       },
       clientSecret: KEYCLOAK_CLIENT_SECRET,
       clientId: KEYCLOAK_CLIENT_ID,
@@ -56,6 +44,9 @@ export const {
       if (user) {
         token.tokenSet = user.tokenSet;
         token.roles = ["admin"];
+        token.firstName = user.firstName;
+        token.lastName = user.lastName;
+        token.id = user.id;
       }
 
       const decodedAccessToken: any = jwtDecode(token.tokenSet.accessToken);
@@ -71,7 +62,26 @@ export const {
       });
 
       if (isTokenExpired(decodedAccessToken)) {
-        await refreshToken(token);
+        console.log("token expired");
+
+        const response = await fetch("http://localhost:3000/api/token", {
+          method: "POST",
+          body: JSON.stringify({
+            refresh_token: token.tokenSet.refreshToken,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+
+          token.tokenSet = {
+            accessToken: data.data.access_token,
+            refreshToken: data.data.refresh_token,
+          };
+        } else {
+          console.log("refresh token failed");
+          token.tokenSet = null;
+        }
       }
 
       token.roles = roles;
@@ -80,8 +90,11 @@ export const {
     },
     async session({ session, token }: any) {
       if (session?.user) {
-        session.user.tokenSet = token.tokenSet;
-        session.user.roles = token.roles;
+        session.user.tokenSet = token?.tokenSet;
+        session.user.roles = token?.roles;
+        session.user.firstName = token?.firstName;
+        session.user.lastName = token?.lastName;
+        session.user.userId = token?.id;
       }
 
       return session;

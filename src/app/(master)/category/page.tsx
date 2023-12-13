@@ -2,10 +2,12 @@
 
 import { usePermission } from "@/libs/hooks/use-permission";
 
-const Page = () => {
+const Page = async () => {
+  // call api
+
   const categoryPermission = usePermission({
     resource: "category",
-    scope: ["read", "write", "update", "delete"],
+    scope: ["read", "write", "update"],
   });
 
   return (
