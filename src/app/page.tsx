@@ -1,3 +1,10 @@
+import LogoutButton from "@/components/logout-button";
+
 export default async function Home() {
-  return <div>hello world</div>;
+  return (
+    <div>
+      <p>hello world</p>
+      <LogoutButton />
+    </div>
+  );
 }

@@ -1,5 +1,4 @@
 import axios from "axios";
-import HttpClient from "@/libs/http-client";
 
 const refreshTokenOAuth = async (
   refreshTokenString: string,
@@ -38,19 +37,6 @@ const refreshTokenApi = async (refreshTokenString: string) => {
   return data;
 };
 
-// sync user from keycloak to database
-const syncUser = async () => {
-  try {
-    const response = await HttpClient({
-      baseUrl: "http://localhost:3001",
-    }).get("/api/v1.0/auth/user/sync");
-
-    return response.data;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
 const keycloakSessionLogout = async () => {
   try {
     await fetch("api/auth/logout", { method: "GET" });
@@ -59,4 +45,4 @@ const keycloakSessionLogout = async () => {
   }
 };
 
-export { refreshTokenOAuth, refreshTokenApi, syncUser, keycloakSessionLogout };
+export { refreshTokenOAuth, refreshTokenApi, keycloakSessionLogout };

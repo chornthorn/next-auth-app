@@ -1,8 +1,8 @@
-import { syncUser } from "@/libs/services/auth-service";
+import { auth } from "@/libs/auth";
 
 const Page = async () => {
-  const user = await syncUser();
-
+  const authn: any = await auth();
+  const user = authn?.user_info;
   return (
     <div>
       <h1>My Server</h1>
