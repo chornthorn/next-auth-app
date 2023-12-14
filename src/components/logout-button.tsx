@@ -1,7 +1,9 @@
 "use client";
 
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useEffect } from "react";
+import { LogOut } from "lucide-react";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 async function logout() {
   const response = await fetch("/api/auth/logout", {
@@ -27,35 +29,18 @@ const Page = () => {
     asyncSignOut();
   }, [session, status]);
 
-  if (status === "loading") {
-    return <div>Loading...</div>;
-  } else if (session) {
-    return (
-      <div>
-        <p>
-          <button
-            onClick={() => {
-              logout().then(() => {
-                signOut({ callbackUrl: "/" });
-              });
-            }}
-          >
-            Logout
-          </button>
-        </p>
-      </div>
-    );
-  }
+  const handleLogOut = () => {
+    logout().then(() => {
+      signOut({ callbackUrl: "/" });
+    });
+  };
 
   return (
     <>
-      please sign in
-      <button
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        onClick={() => signIn("keycloak", { callbackUrl: "/" })}
-      >
-        Sign In
-      </button>
+      <DropdownMenuItem onClick={handleLogOut}>
+        <LogOut className="mr-2 h-4 w-4" />
+        <span>Log out</span>
+      </DropdownMenuItem>
     </>
   );
 };

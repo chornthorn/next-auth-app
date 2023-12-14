@@ -3,6 +3,13 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/auth-provider";
 import React, { ReactNode } from "react";
+import { AppThemeProvider } from "@/components/theme-provider";
+import { auth } from "@/libs/auth";
+import SwitchMode from "@/components/switch-mode";
+import Settings from "@/components/settings";
+import UserMenu from "@/components/user-menu";
+import Sidebar from "@/components/sidebar";
+import Header from "@/components/header";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,10 +23,36 @@ export default async function RootLayout({
 }: {
   children: ReactNode;
 }) {
+  const authn = await auth();
+  const user = authn?.user;
+
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <AuthProvider>
-        <body className={inter.className}>{children}</body>
+        <body className={inter.className}>
+          <AppThemeProvider>
+            <main className="flex min-h-screen">
+              <div className="flex-1">
+                <Header>
+                  <SwitchMode />
+                  {/* <Settings /> */}
+                  <UserMenu
+                    user={{
+                      name: user?.name,
+                      image: user?.image,
+                      email: user?.email,
+                    }}
+                  />
+                </Header>
+                <Sidebar className="fixed hidden border-r xl:flex overflow-y-auto h-screen" />
+
+                <div className="container mt-24 pb-8 xl:pl-[256px]">
+                  {children}
+                </div>
+              </div>
+            </main>
+          </AppThemeProvider>
+        </body>
       </AuthProvider>
     </html>
   );
