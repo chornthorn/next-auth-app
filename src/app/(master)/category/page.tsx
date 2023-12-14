@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams, useSelectedLayoutSegment } from "next/navigation";
 
 async function getCategory() {
   // get category
@@ -18,6 +19,11 @@ async function getCategory() {
 const Page = () => {
   const [category, setCategory] = useState([]);
 
+  const segment = useSelectedLayoutSegment();
+  const searchParams = useSearchParams();
+
+  const search = searchParams.get("search");
+
   useEffect(() => {
     getCategory().then((data) => {
       setCategory(data);
@@ -34,6 +40,11 @@ const Page = () => {
           <p>{item.description}</p>
         </div>
       ))}
+      <hr />
+      <h2>Segment</h2>
+      <p>Active segment: {segment}</p>
+      <h2>Search</h2>
+      <p>Search: {search}</p>
     </div>
   );
 };
