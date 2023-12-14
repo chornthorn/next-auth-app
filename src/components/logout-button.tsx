@@ -4,27 +4,27 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import { useEffect } from "react";
 
 async function logout() {
-  const response = await fetch("/api/logout", {
+  const response = await fetch("/api/auth/logout", {
     method: "GET",
   });
-  if (!response.ok) {
-    console.error("Logout failed");
-  }
-
-  return response;
+  return await response.json();
 }
 
 const Page = () => {
   const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (
-      status !== "loading" &&
-      session &&
-      session?.error === "RefreshAccessTokenError"
-    ) {
-      signOut({ callbackUrl: "/" });
-    }
+    const asyncSignOut = async () => {
+      if (
+        status !== "loading" &&
+        session &&
+        session?.error === "RefreshAccessTokenError"
+      ) {
+        await signOut({ callbackUrl: "/" });
+      }
+    };
+
+    asyncSignOut();
   }, [session, status]);
 
   if (status === "loading") {
