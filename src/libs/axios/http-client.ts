@@ -1,8 +1,10 @@
 import axios from "axios";
 import { auth } from "@/libs/auth";
 
+const baseURL = process.env.PUBLIC_BASE_API_URL;
+
 const httpClient = axios.create({
-  baseURL: "http://localhost:3001/api/v1.0",
+  baseURL: baseURL,
   headers: {
     "Content-Type": "application/json",
   },
