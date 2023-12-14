@@ -10,7 +10,7 @@ export default auth(async (req) => {
 
   // Extract roles from the session
   const session: Session = req.auth;
-  const roles = session.user.roles;
+  const roles = session.roles;
 
   // If the user is trying to access the admin page but is not an admin, redirect to unauthorized
   if (req.nextUrl.pathname === "/admin" && !roles.includes("admin")) {
