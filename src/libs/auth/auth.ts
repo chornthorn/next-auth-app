@@ -33,8 +33,8 @@ export const {
     async jwt({ token, account }: any) {
       const nowTimeStamp = Math.floor(Date.now() / 1000);
       if (account) {
-        // const user_info = await getUserInfo(account.access_token);
-        // token.user_info = user_info;
+        const user_info = await getUserInfo(account.access_token);
+        token.user_info = user_info;
 
         token.access_token = account.access_token;
         token.refresh_token = account.refresh_token;
@@ -44,9 +44,9 @@ export const {
 
         return token;
       } else if (nowTimeStamp < token.expires_at) {
-        // const user_info = await getUserInfo(token.access_token);
-        // return { ...token, user_info, decoded: jwtDecode(token.access_token) };
-        return { ...token, decoded: jwtDecode(token.access_token) };
+        const user_info = await getUserInfo(token.access_token);
+        return { ...token, user_info, decoded: jwtDecode(token.access_token) };
+        // return { ...token, decoded: jwtDecode(token.access_token) };
       } else {
         try {
           const response = await fetch(
@@ -67,8 +67,8 @@ export const {
 
           const refreshedTokens = await response.json();
 
-          // const user_info = await getUserInfo(refreshedTokens.access_token);
-          // token.user_info = user_info;
+          const user_info = await getUserInfo(refreshedTokens.access_token);
+          token.user_info = user_info;
 
           token.access_token = refreshedTokens.access_token;
           token.refresh_token = refreshedTokens.refresh_token;

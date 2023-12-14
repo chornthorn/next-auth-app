@@ -13,10 +13,8 @@ export async function GET(req: Request) {
 
     try {
       const response = await fetch(uri, { method: "GET" });
-      const data = await response.json();
-      console.log(data);
+      await response.json();
     } catch (error) {
-      console.log(error);
       return Response.json({ message: "Error logging out" });
     }
   }
